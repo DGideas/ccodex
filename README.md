@@ -43,6 +43,12 @@ Save the current Codex auth file as a named profile:
 ccodex.py create work
 ```
 
+Delete a saved profile:
+
+```sh
+ccodex.py delete work
+```
+
 Switch Codex to a saved profile:
 
 ```sh
@@ -85,6 +91,7 @@ The following names are reserved:
 
 ```text
 create
+delete
 help
 list
 logout
@@ -123,3 +130,5 @@ auth.json
 ## License
 
 WTFPL
+
+The software is provided as is. The author is not responsible for any consequences.

@@ -5,6 +5,7 @@ Usage:
   ccodex.py              Show current auth status.
   ccodex.py list         List saved auth profiles.
   ccodex.py create NAME  Save current auth.json as NAME.
+  ccodex.py delete NAME  Delete saved auth profile NAME.
   ccodex.py logout       Delete current auth.json.
   ccodex.py NAME         Switch ~/.codex/auth.json to saved NAME.
 """
@@ -19,7 +20,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 
-RESERVED_NAMES = {"create", "help", "list", "logout", "status"}
+RESERVED_NAMES = {"create", "delete", "help", "list", "logout", "status"}
 PROFILE_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 
 
@@ -227,6 +228,27 @@ def cmd_create(args: List[str]) -> int:
     return 0
 
 
+def cmd_delete(args: List[str]) -> int:
+    if len(args) != 1:
+        return fail("usage: ccodex.py delete NAME")
+    name = args[0]
+    error = validate_profile_name(name)
+    if error:
+        return fail(error)
+
+    target = profile_path(name)
+    if not target.exists():
+        return fail(f"profile '{name}' does not exist; run 'ccodex.py list'")
+
+    try:
+        target.unlink()
+    except Exception as exc:
+        return fail(f"could not delete profile '{name}': {exc}")
+
+    print(f"deleted profile '{name}' -> {target}")
+    return 0
+
+
 def cmd_logout() -> int:
     current = auth_path()
     if not current.exists():
@@ -288,13 +310,15 @@ def main(argv: List[str]) -> int:
         return cmd_list()
     if command == "create":
         return cmd_create(argv[1:])
+    if command == "delete":
+        return cmd_delete(argv[1:])
     if command == "logout":
         if len(argv) != 1:
             return fail("usage: ccodex.py logout")
         return cmd_logout()
     if len(argv) == 1:
         return cmd_switch(command)
-    return fail("usage: ccodex.py [list|status|create NAME|logout|NAME]")
+    return fail("usage: ccodex.py [list|status|create NAME|delete NAME|logout|NAME]")
 
 
 if __name__ == "__main__":
